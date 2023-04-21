@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "Mellor auction scrapper",
+  "description": "Scrapper extension for the mellor auction website",
+  "version": "0.1.0",
+
+  "permissions": ["<all_urls>"],
+
+  "browser_action": {
+    "default_popup": "index.html"
+  },
+  "icons": {
+    "16": "icon16.png"
+  }
+}

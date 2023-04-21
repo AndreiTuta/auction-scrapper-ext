@@ -1,0 +1,27 @@
+{
+  "name": "mellor-extension",
+  "version": "1.0.0",
+  "description": "Chrome extension for scrapping Mellor auctions.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "webpack --watch",
+    "build": "webpack"
+  },
+  "keywords": [
+    "chrome extension",
+    "scrapper",
+    "puppeteer"
+  ],
+  "author": "Andrei Tuta",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
+  },
+  "dependencies": {
+    "axios": "^1.3.6",
+    "dom-utils": "^0.9.0",
+    "node-html-parser": "^6.1.5"
+  }
+}

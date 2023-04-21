@@ -1,0 +1,36 @@
+.container {
+  margin: 1.5em;
+  width: 500px;
+  text-align: center;
+}
+
+.result {
+  margin-top: 1em;
+}
+
+button.ui{
+  margin-top: 10px;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+tr {
+  border-bottom: 1pt solid black;
+}
+
+td{
+  padding: 10px;
+}
+
+main {
+  display: grid;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+h1 {
+  font-size: 1.3rem;
+}
+
