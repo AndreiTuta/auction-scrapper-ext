@@ -5,7 +5,7 @@
   "version": "0.1.0",
 
   "permissions": ["<all_urls>"],
-
+  "content_security_policy": "script-src 'self' 'sha256-zp7nPK4NaxlkRn05r7ME3X35CevNxbP6qH96bRy5SCA='",
   "browser_action": {
     "default_popup": "index.html"
   },
