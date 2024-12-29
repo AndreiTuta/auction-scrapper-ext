@@ -1,7 +1,7 @@
 {
   "name": "mellor-extension",
-  "version": "1.0.0",
-  "description": "Chrome extension for scrapping Mellor auctions.",
+  "version": "1.0.1",
+  "description": "Chrome based extension for scrapping Mellor auctions.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
