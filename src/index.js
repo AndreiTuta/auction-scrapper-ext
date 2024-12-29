@@ -4,43 +4,65 @@ import $ from "jquery";
 import "datatables.net-dt";
 
 const base = "https://edwardmellor.co.uk";
-const api = base + "/auctions/";
-const errors = document.querySelector(".errors");
-const loading = document.querySelector(".loading");
-const results = document.querySelector(".result-container");
-const logList = document.querySelector("#log-list");
-const dateElement = document.getElementById("date");
-results.style.display = "none";
-loading.style.display = "none";
-errors.textContent = "";
+const api = `${base}/auctions/`;
 
-// Logging function
-const logMessage = (message) => {
+/** 
+ * Logs a message with a timestamp.
+ * @param {string} message - The message to log.
+ */
+export const logMessage = (message) => {
+  const logList = document.querySelector("#log-list");
   const timestamp = new Date().toLocaleTimeString();
   const logItem = document.createElement("li");
   logItem.textContent = `[${timestamp}] ${message}`;
   logList.appendChild(logItem);
 };
 
-// Extractors
-const extractText = (element, selector) => {
+/**
+ * Extracts text from an element using a CSS selector.
+ * @param {HTMLElement} element - The parent element.
+ * @param {string} selector - The CSS selector for the target element.
+ * @returns {string} The extracted text, or an empty string if not found.
+ */
+export const extractText = (element, selector) => {
   const target = element?.querySelector(selector)?.parentNode?.lastChild;
   return target ? target.text.trim() : "";
 };
 
-const extractPriceData = (priceDiv) => {
+/**
+ * Extracts price data from a div element.
+ * @param {string} priceDiv - The HTML string of the price div.
+ * @returns {string} The extracted price text, or an empty string if not found.
+ */
+export const extractPriceData = (priceDiv) => {
   const pricing = priceDiv ? parse(priceDiv) : null;
   const price = pricing?.lastChild?.lastChild;
   return price ? price.text.trim() : "";
 };
 
-const extractStatusData = (statusDiv) => {
+/**
+ * Extracts status data from a div element.
+ * @param {HTMLElement} statusDiv - The status div element.
+ * @returns {string} The extracted status text, or an empty string if not found.
+ */
+export const extractStatusData = (statusDiv) => {
   const status = statusDiv?.firstChild;
   return status ? status.text.trim() : "";
 };
 
-// Create table row
-const createTableRow = (index, link, address, beds, baths, receptions, price, status) => {
+/**
+ * Creates a table row for an auction item.
+ * @param {number} index - The index of the row.
+ * @param {string} link - The URL of the item.
+ * @param {string} address - The address of the item.
+ * @param {string} beds - Number of beds.
+ * @param {string} baths - Number of baths.
+ * @param {string} receptions - Number of receptions.
+ * @param {string} price - The item's price.
+ * @param {string} status - The item's status.
+ * @returns {HTMLElement} The constructed table row element.
+ */
+export const createTableRow = (index, link, address, beds, baths, receptions, price, status) => {
   const newRow = document.createElement("tr");
   [
     index,
@@ -55,12 +77,15 @@ const createTableRow = (index, link, address, beds, baths, receptions, price, st
     cell.innerHTML = data;
     newRow.appendChild(cell);
   });
-  logMessage(`Adding entry for ${address}`)
+  logMessage(`Adding entry for ${address}`);
   return newRow;
 };
 
-// Create table
-const createTable = async (items) => {
+/**
+ * Creates a DataTable with the provided auction items.
+ * @param {HTMLElement[]} items - List of auction item HTML elements.
+ */
+export const createTable = async (items) => {
   const table = $("#auctionTable").DataTable();
   table.destroy();
 
@@ -93,8 +118,11 @@ const createTable = async (items) => {
   logMessage(`Table created in ${(end - start).toFixed(2)} ms`);
 };
 
-// Fetch content for a specific date
-const getContentForDate = async (url) => {
+/**
+ * Fetches and processes content for a specific auction date.
+ * @param {string} url - The URL to fetch.
+ */
+export const getContentForDate = async (url) => {
   try {
     logMessage(`Fetching content from: ${url}`);
     const start = performance.now();
@@ -103,7 +131,8 @@ const getContentForDate = async (url) => {
     const auctionsPage = parse(auctionResp.data);
     const items = auctionsPage.querySelectorAll(".row.py-2");
 
-    createTable(items);
+    await createTable(items);
+
     const end = performance.now();
     logMessage(`Content fetched and processed in ${(end - start).toFixed(2)} ms`);
   } catch (error) {
@@ -111,9 +140,18 @@ const getContentForDate = async (url) => {
   }
 };
 
-// Fetch main content
-const getContent = async () => {
+/**
+ * Fetches the main auction content and initializes the table.
+ */
+export const getContent = async () => {
+  const loading = document.querySelector(".loading");
+  const results = document.querySelector(".result-container");
+  const errors = document.querySelector(".errors");
+  const dateElement = document.getElementById("date");
+
   loading.style.display = "block";
+  errors.textContent = "";
+
   try {
     logMessage("Starting main content fetch...");
     const start = performance.now();
@@ -142,7 +180,22 @@ const getContent = async () => {
   }
 };
 
+/**
+ * Initializes the scraper by fetching the main content on page load.
+ */
 document.addEventListener("DOMContentLoaded", () => {
-  logMessage("Initializing scraper...");
-  getContent();
+    logMessage("Initializing scraper...");
+    getContent();
 });
+
+// Export for testing
+export default {
+  logMessage,
+  extractText,
+  extractPriceData,
+  extractStatusData,
+  createTableRow,
+  createTable,
+  getContentForDate,
+  getContent
+};
