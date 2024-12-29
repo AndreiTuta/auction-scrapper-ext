@@ -34,3 +34,9 @@ h1 {
   font-size: 1.3rem;
 }
 
+ul#log-list {
+  list-style-type: none;
+}
+a.paginate_button {
+  margin: 10px;
+}

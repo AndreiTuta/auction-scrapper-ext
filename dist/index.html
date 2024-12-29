@@ -4,33 +4,44 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Mellor auction extension</title>
+    <title>Mellor Auction Extension</title>
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./datatables.min.css" />
   </head>
   <body class="container">
-    <div class="result">
-      <div class="loading">loading...</div>
-      <div class="errors"></div>
-      <div class="result-container">
-        <p><strong>Content: </strong> <span id="date"></span></p>
-        <table id="auctionTable">
-          <thead>
-            <tr>
-              <th>idx</th>
-              <th>property</th>
-              <th>beds</th>
-              <th>baths</th>
-              <th>receptions</th>
-              <th>price</th>
-              <th>status</th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-    </div>
+    <header>
+      <h1>Mellor Auction Scraper</h1>
+    </header>
+    <main>
+      <section class="result">
+        <div class="loading">Loading...</div>
+        <div class="errors"></div>
+        <div class="result-container">
+          <p><strong>Scraping Auction for Date:</strong> <span id="date"></span></p>
+          <table id="auctionTable" class="display">
+            <thead>
+              <tr>
+                <th>Idx</th>
+                <th>Property</th>
+                <th>Beds</th>
+                <th>Baths</th>
+                <th>Receptions</th>
+                <th>Price</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
 
+      <section class="logging">
+        <h2>Logging</h2>
+        <div id="logs">
+          <ul id="log-list"></ul>
+        </div>
+      </section>
+    </main>
     <script src="./main.js"></script>
   </body>
 </html>

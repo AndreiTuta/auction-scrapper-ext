@@ -3,253 +3,146 @@ import axios from "axios";
 import $ from "jquery";
 import "datatables.net-dt";
 
-// Base URL and API endpoint
 const base = "https://edwardmellor.co.uk";
 const api = base + "/auctions/";
-
-// Select DOM elements
 const errors = document.querySelector(".errors");
 const loading = document.querySelector(".loading");
 const results = document.querySelector(".result-container");
+const logList = document.querySelector("#log-list");
+const dateElement = document.getElementById("date");
 results.style.display = "none";
 loading.style.display = "none";
 errors.textContent = "";
 
-// Define div classes for query selectors
-const itemDivClass = ".col-9.col-md-5";
-const priceDivClass = ".mt-2.mt-md-0.col-6.col-md-2";
-const statusDivClass =
-  ".mt-2.mt-md-0.col-6.col-md-2.align-items-center";
-const bedsDivClass = ".lead.icon-beds.align-middle";
-const receptionsDivClass = ".lead.icon-receptions.align-middle";
-const bathDivClass = ".lead.icon-baths.align-middle";
-const buttonClass = ".btn.btn-primary.mt-3";
-const rowClass = ".row.py-2";
-
-/**
- * Extracts the beds data from the HTML element.
- * @param {HTMLElement} bedsDiv - HTML element containing beds information.
- * @returns {string} - Beds data.
- */
-const extractBedsData = (bedsDiv) => {
-  if (bedsDiv) {
-    var beds = bedsDiv.parentNode;
-    var bedsChild = beds.lastChild;
-    if (bedsChild) {
-      return bedsChild.text;
-    }
-  }
-  return "";
+// Logging function
+const logMessage = (message) => {
+  const timestamp = new Date().toLocaleTimeString();
+  const logItem = document.createElement("li");
+  logItem.textContent = `[${timestamp}] ${message}`;
+  logList.appendChild(logItem);
 };
 
-/**
- * Extracts the receptions data from the HTML element.
- * @param {HTMLElement} receptionsDiv - HTML element containing receptions information.
- * @returns {string} - Receptions data.
- */
-const extractReceptionsData = (receptionsDiv) => {
-  if (receptionsDiv) {
-    var receptions = receptionsDiv.parentNode;
-    var receptionsChild = receptions.lastChild;
-    if (receptionsChild) {
-      return receptionsChild.text;
-    }
-  }
-  return "";
+// Extractors
+const extractText = (element, selector) => {
+  const target = element?.querySelector(selector)?.parentNode?.lastChild;
+  return target ? target.text.trim() : "";
 };
 
-/**
- * Extracts the baths data from the HTML element.
- * @param {HTMLElement} bathDiv - HTML element containing baths information.
- * @returns {string} - Baths data.
- */
-const extractBathsData = (bathDiv) => {
-  if (bathDiv) {
-    var baths = bathDiv.parentNode;
-    var bathsChild = baths.lastChild;
-    if (bathsChild) {
-      return bathsChild.text;
-    }
-  }
-  return "";
-};
-
-/**
- * Extracts the price data from the HTML element.
- * @param {HTMLElement} priceDiv - HTML element containing price information.
- * @returns {string} - Price data.
- */
 const extractPriceData = (priceDiv) => {
-  if (priceDiv) {
-    var pricing = parse(priceDiv);
-    var price = pricing.lastChild;
-    var priceChild = price.lastChild;
-    if (priceChild) {
-      return priceChild.text;
-    }
-  }
-  return "";
+  const pricing = priceDiv ? parse(priceDiv) : null;
+  const price = pricing?.lastChild?.lastChild;
+  return price ? price.text.trim() : "";
 };
 
-/**
- * Extracts the status data from the HTML element.
- * @param {HTMLElement} statusDiv - HTML element containing status information.
- * @returns {string} - Status data.
- */
 const extractStatusData = (statusDiv) => {
-  if (statusDiv) {
-    var status = statusDiv.firstChild;
-    return status.text;
-  }
-  return "";
+  const status = statusDiv?.firstChild;
+  return status ? status.text.trim() : "";
 };
 
-/**
- * Creates a table row with the provided data.
- * @param {number} index - Index of the row.
- * @param {string} link - Link for the auction item.
- * @param {string} beds - Beds information.
- * @param {string} baths - Baths information.
- * @param {string} receptions - Receptions information.
- * @param {string} price - Price information.
- * @param {string} status - Status information.
- * @returns {HTMLTableRowElement} - Table row element.
- */
-const createTableRow = (
-  index,
-  link,
-  address,
-  beds,
-  baths,
-  receptions,
-  price,
-  status
-) => {
-  var newRow = document.createElement("tr");
-  var idxCell = document.createElement("td");
-  var bedsCell = document.createElement("td");
-  var bathsCell = document.createElement("td");
-  var receptionsCell = document.createElement("td");
-  var linkCell = document.createElement("td");
-  var priceCell = document.createElement("td");
-  var statusCell = document.createElement("td");
-
-  var anchor = document.createElement("a");
-  anchor.href = base + link;
-  anchor.text = address;
-
-  idxCell.innerHTML = index;
-  linkCell.append(anchor);
-  bedsCell.innerText = beds;
-  bathsCell.innerText = baths;
-  receptionsCell.innerText = receptions;
-  priceCell.innerText = price;
-  statusCell.innerText = status;
-
-  newRow.append(
-    idxCell,
-    linkCell,
-    bedsCell,
-    bathsCell,
-    receptionsCell,
-    priceCell,
-    statusCell
-  );
-
+// Create table row
+const createTableRow = (index, link, address, beds, baths, receptions, price, status) => {
+  const newRow = document.createElement("tr");
+  [
+    index,
+    `<a href="${base + link}" target="_blank">${address}</a>`,
+    beds,
+    baths,
+    receptions,
+    price,
+    status,
+  ].forEach((data) => {
+    const cell = document.createElement("td");
+    cell.innerHTML = data;
+    newRow.appendChild(cell);
+  });
+  logMessage(`Adding entry for ${address}`)
   return newRow;
 };
 
-
-/**
- * Creates a table with the provided items.
- * @param {Array} items - Array of HTML elements representing auction items.
- */
+// Create table
 const createTable = async (items) => {
-  // Destroy the existing DataTable instance, if any
   const table = $("#auctionTable").DataTable();
   table.destroy();
 
-  const tableRows = [];
-
-  for (var i = 0; i < items.length; i++) {
-    var item = parse(items[i]);
-
-    var itemDiv = item.querySelector(itemDivClass);
-    var priceDiv = item.querySelector(priceDivClass);
-    var statusDiv = item.querySelector(statusDivClass);
-    var link = itemDiv.firstChild;
-    var details = parse(itemDiv);
-    var bedsDiv = details.querySelector(bedsDivClass);
-    var receptionsDiv = details.querySelector(receptionsDivClass);
-    var bathDiv = details.querySelector(bathDivClass);
-
-    var beds = extractBedsData(bedsDiv);
-    var receptions = extractReceptionsData(receptionsDiv);
-    var baths = extractBathsData(bathDiv);
-    var price = extractPriceData(priceDiv);
-    var status = extractStatusData(statusDiv);
-
-    var newRow = createTableRow(
-      i + 1,
-      link.rawAttributes.href,
-      link.text,
-      beds,
-      baths,
-      receptions,
-      price,
-      status
-    );
-
-    tableRows.push(newRow);
-  }
-
+  const start = performance.now();
   const tableBody = document.getElementById("rows");
-  tableRows.forEach((row) => {
-    tableBody.appendChild(row);
+  tableBody.innerHTML = ""; // Clear existing rows
+
+  const tableRows = items.map((item, i) => {
+    const parsedItem = parse(item);
+    const itemDiv = parsedItem.querySelector(".col-9.col-md-5");
+    const priceDiv = parsedItem.querySelector(".mt-2.mt-md-0.col-6.col-md-2");
+    const statusDiv = parsedItem.querySelector(".mt-2.mt-md-0.col-6.col-md-2.align-items-center");
+
+    const details = parse(itemDiv);
+    const beds = extractText(details, ".lead.icon-beds.align-middle");
+    const receptions = extractText(details, ".lead.icon-receptions.align-middle");
+    const baths = extractText(details, ".lead.icon-baths.align-middle");
+    const price = extractPriceData(priceDiv);
+    const status = extractStatusData(statusDiv);
+
+    const link = itemDiv?.firstChild?.rawAttributes.href;
+    const address = itemDiv?.firstChild?.text.trim();
+    return createTableRow(i + 1, link, address, beds, baths, receptions, price, status);
   });
 
-  // Reinitialize DataTables
+  tableRows.forEach((row) => tableBody.appendChild(row));
   $("#auctionTable").DataTable();
+
+  const end = performance.now();
+  logMessage(`Table created in ${(end - start).toFixed(2)} ms`);
 };
 
-/**
- * Fetches the content for the given URL and processes it.
- * @param {string} url - URL to fetch the content from.
- */
+// Fetch content for a specific date
 const getContentForDate = async (url) => {
-  document.getElementById("date").innerHTML = url;
+  try {
+    logMessage(`Fetching content from: ${url}`);
+    const start = performance.now();
 
-  const auctionResp = await axios.get(url);
-  let auctionsPage = parse(auctionResp.data);
-  let items = auctionsPage.querySelectorAll(rowClass);
+    const auctionResp = await axios.get(url);
+    const auctionsPage = parse(auctionResp.data);
+    const items = auctionsPage.querySelectorAll(".row.py-2");
 
-  createTable(items);
+    createTable(items);
+    const end = performance.now();
+    logMessage(`Content fetched and processed in ${(end - start).toFixed(2)} ms`);
+  } catch (error) {
+    logMessage(`Error fetching content for date: ${error.message}`);
+  }
 };
 
-/**
- * Fetches the main content and initiates the scraping process.
- */
+// Fetch main content
 const getContent = async () => {
   loading.style.display = "block";
   try {
-    const response = await axios.get(`${api}/`);
-    loading.style.display = "none";
-    let resp = parse(response.data);
+    logMessage("Starting main content fetch...");
+    const start = performance.now();
 
-    let item = resp.querySelectorAll(buttonClass)[0];
-    if (item) {
-      const url = item.rawAttributes.href;
-      getContentForDate(url);
-    }
+    const response = await axios.get(`${api}/`);
+    const dom = parse(response.data);
+
+    const items = dom.querySelectorAll(".d-flex.rIcHy .pw-bl");
+    if (!items.length) throw new Error("No auction buttons found");
+
+    const firstItem = items[0];
+    const url = firstItem.href || firstItem.getAttribute("href");
+    if (!url) throw new Error("No URL found in the first button");
+
+    dateElement.textContent = url; // Display date
+    await getContentForDate(url);
+
+    const end = performance.now();
+    logMessage(`Main content fetch completed in ${(end - start).toFixed(2)} ms`);
     results.style.display = "block";
   } catch (error) {
+    errors.textContent = `Error: ${error.message}`;
+    logMessage(`Error: ${error.message}`);
+  } finally {
     loading.style.display = "none";
-    results.style.display = "none";
-    errors.textContent = "Error " + error;
   }
 };
 
-// Add an event listener to initialize DataTables after the table is populated
 document.addEventListener("DOMContentLoaded", () => {
+  logMessage("Initializing scraper...");
   getContent();
 });
